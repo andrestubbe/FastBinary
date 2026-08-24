@@ -132,10 +132,10 @@ FastBinary is profiled using **JMH** to guarantee zero-allocation execution.
 
 | Benchmark Operation | Score (ops/ms) | Ops per Second | Memory Allocation |
 |---|---|---|---|
-| **VarInt Encoding** | **~85,000 ops/ms** | **> 85 Million** | **0 bytes / op (Zero GC)** |
-| **ZigZag Mapping** | **~2,400,000 ops/ms** | **> 2.4 Billion** | **0 bytes / op (Zero GC)** |
-| **BitPack Field Set & Get** | **~1,900,000 ops/ms** | **> 1.9 Billion** | **0 bytes / op (Zero GC)** |
-| **BitStream Sequential Read** | **~42,000 ops/ms** | **> 42 Million** | **0 bytes / op (Zero GC)** |
+| **BitPack Field Set & Get** | **~2,193,000 ops/ms** | **> 2.19 Billion** | **0 bytes / op (Zero GC)** |
+| **ZigZag Mapping** | **~1,297,000 ops/ms** | **> 1.29 Billion** | **0 bytes / op (Zero GC)** |
+| **VarInt Encoding** | **~159,000 ops/ms** | **> 159 Million** | **0 bytes / op (Zero GC)** |
+| **BitStream Sequential Read** | **~2,694 ops/ms** | **> 2.69 Million** | **0 bytes / op (Zero GC)** |
 
 *Run the benchmarks locally:* `.\run-benchmark.bat`
 
