@@ -35,6 +35,13 @@
         <junit.version>5.10.0</junit.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <!-- FastCore (Mandatory FastJava Foundation) -->
         <dependency>
