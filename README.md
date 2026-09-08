@@ -12,6 +12,8 @@
 
 **FastBinary** is a low-level, high-throughput primitive encoding toolkit. It provides **LEB128 variable-length integer compression (`VarInt` / `VarLong`)**, **ZigZag signed number mapping**, **sub-byte bitfield manipulation (`BitPack`)**, **sequential bit streams (`BitStream`)**, and **zero-allocation endianness operations (`EndianUtil`)**.
 
+Watch Demo (YouTube) | Watch JMH Benchmark (Youtube)
+
 ---
 
 ## Quick Start
