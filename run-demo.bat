@@ -1,12 +1,25 @@
 @echo off
-chcp 65001 >nul
+setlocal
 cd /d "%~dp0"
+echo ===================================================
+echo  FastBinary Demo
+echo ===================================================
+echo [1/3] Building FastBinary...
+call "C:\Users\andre\tools\apache-maven-3.9.9\bin\mvn.cmd" install -DskipTests
+if %ERRORLEVEL% NEQ 0 (
+    echo FastBinary build failed!
+    exit /b %ERRORLEVEL%
+)
 
-echo ⚡ Building Main Project (FastBinary)...
-call mvn install -DskipTests -q
-if %ERRORLEVEL% NEQ 0 ( echo ❌ Main build failed. & pause & exit /b %ERRORLEVEL% )
+echo [2/3] Compiling Demo...
+cd examples\Demo
+call "C:\Users\andre\tools\apache-maven-3.9.9\bin\mvn.cmd" compile
+if %ERRORLEVEL% NEQ 0 (
+    echo Demo compilation failed!
+    exit /b %ERRORLEVEL%
+)
 
-echo 🚀 Running FastBinary Interactive Demo...
-java -cp "target\FastBinary-0.1.0.jar;examples\Demo\src\main\java;%USERPROFILE%\.m2\repository\com\github\andrestubbe\fastcore\0.1.0\fastcore-0.1.0.jar" fastbinary.demo.Demo
-
+echo [3/3] Running Demo...
+call "C:\Users\andre\tools\apache-maven-3.9.9\bin\mvn.cmd" exec:java "-Dexec.mainClass=fastbinary.demo.Demo"
+cd ..\..
 pause

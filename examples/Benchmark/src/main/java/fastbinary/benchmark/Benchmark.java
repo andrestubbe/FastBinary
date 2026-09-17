@@ -6,7 +6,15 @@ import fastbinary.BitStreamWriter;
 import fastbinary.FastBinary;
 import fastbinary.VarInt;
 import fastbinary.ZigZag;
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Warmup;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 3, time = 1)
 @Measurement(iterations = 5, time = 1)
 @Fork(1)
-public class FastBinaryBenchmark {
+public class Benchmark {
 
     private ByteBuffer varIntBuffer;
     private byte[] bitStreamBytes;
@@ -37,18 +45,18 @@ public class FastBinaryBenchmark {
         bitStreamBytes = writer.toByteArray();
     }
 
-    @Benchmark
+    @org.openjdk.jmh.annotations.Benchmark
     public int benchmarkVarIntEncode() {
         ByteBuffer buf = ByteBuffer.allocate(16);
         return FastBinary.writeVarInt(123456, buf);
     }
 
-    @Benchmark
+    @org.openjdk.jmh.annotations.Benchmark
     public int benchmarkZigZagEncode() {
         return ZigZag.encode(-123456);
     }
 
-    @Benchmark
+    @org.openjdk.jmh.annotations.Benchmark
     public int benchmarkBitPackField() {
         int word = 0;
         word = BitPack.setField(word, 0, 5, 25);
@@ -56,7 +64,7 @@ public class FastBinaryBenchmark {
         return BitPack.getField(word, 5, 8);
     }
 
-    @Benchmark
+    @org.openjdk.jmh.annotations.Benchmark
     public int benchmarkBitStreamRead() {
         BitStreamReader reader = FastBinary.bitReader(bitStreamBytes);
         int sum = 0;

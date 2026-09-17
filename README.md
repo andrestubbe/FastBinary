@@ -1,9 +1,12 @@
-# FastBinary 0.1.0 [ALPHA-2026-08-24] — High-Performance Bit-Packing, VarInt Encoding & Endianness Engine for Java
+> [!WARNING]
+> **🚧 WIP — Active AI Pipeline Construction & Architecture Optimization in Progress.**
 
-[![Status](https://img.shields.io/badge/status-0.1.0-brightgreen.svg)](https://github.com/andrestubbe/FastBinary/releases/tag/0.1.0)
+# FastBinary [ALPHA-2026-09-08] — High-Performance Bit-Packing, VarInt Encoding & Endianness Engine for Java
+
+[![Status](https://img.shields.io/badge/status-0.1.1-brightgreen.svg)](https://github.com/andrestubbe/FastBinary/releases/tag/0.1.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://www.java.com)
-[![Platform](https://img.shields.io/badge/Platform-Cross--Platform-lightgrey.svg)]()
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010+-lightgrey.svg)]()
 [![JitPack](https://img.shields.io/badge/JitPack-ready-green.svg)](https://jitpack.io/#andrestubbe/FastBinary)
 
 ---
@@ -11,8 +14,6 @@
 **⚡ Universal, zero-bloat binary bit-packing, VarInt encoding, and endianness utilities for the FastJava ecosystem.**
 
 **FastBinary** is a low-level, high-throughput primitive encoding toolkit. It provides **LEB128 variable-length integer compression (`VarInt` / `VarLong`)**, **ZigZag signed number mapping**, **sub-byte bitfield manipulation (`BitPack`)**, **sequential bit streams (`BitStream`)**, and **zero-allocation endianness operations (`EndianUtil`)**.
-
-Watch Demo (YouTube) | Watch JMH Benchmark (Youtube)
 
 ---
 
@@ -77,12 +78,12 @@ public class BitDemo {
 ## Table of Contents
 
 - [Why FastBinary?](#why-fastbinary)
-- [Quick Start](#quick-start)
 - [Key Features](#key-features)
-- [Real-World Scenarios](#real-world-scenarios)
+- [Real-World Use Cases](#real-world-use-cases)
+- [Architecture Overview](#architecture-overview)
 - [Performance Benchmarks](#performance-benchmarks)
 - [API Quick Reference](#api-quick-reference)
-- [Technical Examples & Hero Demos](#technical-examples--hero-demos)
+- [Technical Demos & Benchmarks](#technical-demos--benchmarks)
 - [Installation](#installation)
 - [Documentation](#documentation)
 - [Platform Support](#platform-support)
@@ -95,87 +96,97 @@ public class BitDemo {
 
 Modern network protocols, game engines, and vector stores waste millions of bytes transmitting padded 32-bit and 64-bit primitive types when values are small or boolean in nature:
 
-1. **Massive Bandwidth & Memory Waste**  
-   Standard integers occupy 4 full bytes even for values like `0`, `1`, or `42`.
-2. **GC Allocations in High-Frequency Packet Serialization**  
-   Typical BitSet or bitfield libraries create wrapper objects on heap during hot encoding loops.
-3. **Complex Third-Party Dependencies**  
-   Pulling in Google Protobuf or Apache Commons just for LEB128 VarInt or bit-twiddling introduces heavy jar bloat.
+- **Massive Bandwidth & Memory Waste** — Standard integers occupy 4 full bytes even for values like `0`, `1`, or `42`.
+- **GC Allocations in High-Frequency Packet Serialization** — Typical BitSet or bitfield libraries create wrapper objects on the heap during hot encoding loops.
+- **Complex Third-Party Dependencies** — Pulling in Google Protobuf or Apache Commons just for LEB128 VarInt or bit-twiddling introduces heavy jar bloat.
 
-**FastBinary solves this with pure, zero-allocation primitive utilities:**
-- **Zero Heap Allocations**: Functions operate directly on primitive registers, arrays, and `ByteBuffer` instances.
-- **Maximum Density**: Sub-byte bitstream packing and ZigZag signed VarInt compression shrink payloads by up to 75%.
+FastBinary solves this with pure, zero-allocation primitive utilities:
+
+| Feature | Standard Java Primitives | Apache Commons / Protobuf | FastBinary |
+|:---|:---|:---|:---|
+| **Small Integer Footprint** | Fixed 4 or 8 bytes (Padded) | 1–5 bytes (Heavy framework) | 1–5 bytes (LEB128 VarInt) |
+| **Signed Compression** | Two's complement full width | Variable ZigZag via Protobuf | Zero-alloc inline `ZigZag` mapping |
+| **Sub-Byte Bitfields** | `BitSet` allocates heap objects | BitField wrapper objects | Inlined register masks (`BitPack`) |
+| **Bit-Level Streaming** | Complex manual bitwise shifts | Byte-padded streams | Sequential `BitStream` without padding |
+| **Allocation Overhead** | Low | High wrapper churn | **0 bytes / op (Zero GC)** |
 
 ---
 
 ## Key Features
 
-- **⚡ LEB128 VarInt & VarLong** — Standard variable-length integer compression (1–5 bytes for `int`, 1–10 bytes for `long`).
-- **🔀 ZigZag Encoding** — Optimal signed integer compression mapping negative numbers to small positive numbers.
-- **🎯 Bit-Level Streams (`BitStream`)** — Write and read arbitrary bit widths (1..32 bits) across raw byte arrays without byte padding.
-- **📦 Sub-Byte Bitfield Packing (`BitPack`)** — Pack booleans, nibbles (4-bit), 2-bit flags, and custom bitfields into primitive words.
-- **🔄 Endianness Utilities (`EndianUtil`)** — Zero-allocation Little-Endian and Big-Endian integer conversions and byte-swapping.
-- **🌐 Zero Dependencies** — Self-contained pure Java 17+ core backed by `FastCore`.
+- ⚡ **LEB128 VarInt & VarLong** — Standard variable-length integer compression (1–5 bytes for `int`, 1–10 bytes for `long`).
+- 🔀 **ZigZag Encoding** — Optimal signed integer compression mapping negative numbers to small positive numbers.
+- 🎯 **Bit-Level Streams (`BitStream`)** — Write and read arbitrary bit widths (1..32 bits) across raw byte arrays without byte padding.
+- 📦 **Sub-Byte Bitfield Packing (`BitPack`)** — Pack booleans, nibbles (4-bit), 2-bit flags, and custom bitfields into primitive words.
+- 🔄 **Endianness Utilities (`EndianUtil`)** — Zero-allocation Little-Endian and Big-Endian integer conversions and byte-swapping.
+- 🌐 **Zero Dependencies** — Self-contained pure Java 17+ core backed by `FastCore`.
 
 ---
 
-## Real-World Scenarios
+## Real-World Use Cases
 
-- **💾 FastFileFormat & Binary Serializers** — Low-level primitive compression for headers, chunk offsets, and variable arrays.
-- **🎮 Multiplayer Game State & Telemetry** — Packing 1-bit flags, 4-bit entity states, and 10-bit rotation angles into minimal network packets.
-- **📊 Time-Series & Sensor Data Compression** — High-density delta-of-delta compression for telemetry timestamps and numeric counters.
-- **🧠 Vector Databases & AI Embeddings** — Compressing sparse indexes, quantization flags, and bitmasks in `FastAIVectorDB`.
+- 💾 **FastFileFormat Dual Serialization**: Provides bit-packing and VarInt stream encoding for headers, payload lengths, and compact binary records.
+- 🎮 **Multiplayer Game State & Telemetry**: Packs 1-bit booleans, 4-bit entity states, and 10-bit rotation angles into tight network datagrams.
+- 🧠 **Vector Index & Quantization Bitmasks**: Compresses sparse indexes, product quantization codes, and binary search bitmasks in `FastAIVectorDB`.
+- 📊 **Time-Series & Sensor Delta Compression**: High-density delta-of-delta compression for timestamp sequences and numeric counters.
+
+---
+
+## Architecture Overview
+
+FastBinary serves as the low-level bit and byte encoding foundation across FastJava:
+
+- ⚡ **[FastBinary](https://github.com/andrestubbe/FastBinary)** (Bit/Byte Layer): VarInt, ZigZag, BitStream, and primitive register bit-packing.
+- 📄 **[FastFileFormat](https://github.com/andrestubbe/FastFileFormat)** (Serialization): Builds on FastBinary to serialize dual-format text and binary files.
+- 🧠 **[FastAIState](https://github.com/andrestubbe/FastAIState)** (Agent Memory): Uses FastBinary for dense multi-agent state snapshot encoding.
+- 🚀 **[FastCore](https://github.com/andrestubbe/FastCore)** (Foundation): Native JNI loader and platform memory utilities.
 
 ---
 
 ## Performance Benchmarks
 
-FastBinary is profiled using **JMH** to guarantee zero-allocation execution.
+FastBinary is profiled using **JMH** to guarantee zero-allocation execution:
 
 | Benchmark Operation | Score (ops/ms) | Ops per Second | Memory Allocation |
-|---|---|---|---|
-| **BitPack Field Set & Get** | **~2,193,000 ops/ms** | **> 2.19 Billion** | **0 bytes / op (Zero GC)** |
-| **ZigZag Mapping** | **~1,297,000 ops/ms** | **> 1.29 Billion** | **0 bytes / op (Zero GC)** |
-| **VarInt Encoding** | **~159,000 ops/ms** | **> 159 Million** | **0 bytes / op (Zero GC)** |
-| **BitStream Sequential Read** | **~2,694 ops/ms** | **> 2.69 Million** | **0 bytes / op (Zero GC)** |
+|:---|:---|:---|:---|
+| **BitPack Field Set & Get** | **~1,455,000 ops/ms** | **> 1.45 Billion** | **0 bytes / op (Zero GC)** |
+| **ZigZag Signed Mapping** | **~1,421,000 ops/ms** | **> 1.42 Billion** | **0 bytes / op (Zero GC)** |
+| **VarInt Encode** | **~182,000 ops/ms** | **> 182 Million** | **0 bytes / op (Zero GC)** |
+| **BitStream Sequential Read** | **~1,820 ops/ms** | **> 1.82 Million** | **0 bytes / op (Zero GC)** |
 
-*Run the benchmarks locally:* `.\run-benchmark.bat`
+*Measured on Windows 11 x64, Intel Core i5 (Surface Pro 8), JDK 21.0.12.1.*
 
 ---
 
 ## API Quick Reference
 
-| Class / Method | Description |
-|---|---|
-| `FastBinary.writeVarInt(int, ByteBuffer)` | Writes LEB128 variable-length integer into a buffer. |
-| `FastBinary.readVarInt(ByteBuffer)` | Reads LEB128 variable-length integer from a buffer. |
-| `FastBinary.writeSignedVarInt(int, ByteBuffer)` | Compresses signed integer using ZigZag + VarInt. |
-| `FastBinary.readSignedVarInt(ByteBuffer)` | Decodes signed integer using VarInt + ZigZag. |
-| `ZigZag.encode(int)` / `decode(int)` | Maps signed integer to unsigned integer and back. |
-| `BitPack.packBooleans(b0..b7)` | Packs up to 8 boolean values into a single byte. |
-| `BitPack.setField(word, offset, bits, val)` | Packs arbitrary sub-byte integer into an int word. |
-| `BitPack.getField(word, offset, bits)` | Extracts arbitrary sub-byte integer from an int word. |
-| `FastBinary.bitWriter()` / `bitReader(bytes)` | Creates sequential bitstream encoder / decoder. |
-| `EndianUtil.swap(int / long / short)` | Reverses byte order of primitive integer types. |
+| Class / Method | Return Type | Description |
+|:---|:---|:---|
+| `FastBinary.writeVarInt(val, buffer)` | `int` | Writes LEB128 variable-length integer into a buffer. |
+| `FastBinary.readVarInt(buffer)` | `int` | Reads LEB128 variable-length integer from a buffer. |
+| `FastBinary.writeSignedVarInt(val, buf)` | `int` | Compresses signed integer using ZigZag + VarInt. |
+| `FastBinary.readSignedVarInt(buffer)` | `int` | Decodes signed integer using VarInt + ZigZag. |
+| `ZigZag.encode(int)` / `decode(int)` | `int` | Maps signed integer to unsigned integer and back. |
+| `BitPack.packBooleans(b0..b7)` | `byte` | Packs up to 8 boolean values into a single byte. |
+| `BitPack.setField(word, offset, bits, val)` | `int` | Packs arbitrary sub-byte integer into an int word. |
+| `BitPack.getField(word, offset, bits)` | `int` | Extracts arbitrary sub-byte integer from an int word. |
+| `FastBinary.bitWriter()` | `BitStreamWriter` | Creates sequential bitstream encoder. |
+| `FastBinary.bitReader(bytes)` | `BitStreamReader` | Creates sequential bitstream decoder. |
 
 ---
 
-## Technical Examples & Hero Demos
+## Technical Demos & Benchmarks
 
 | Case | Java Example | Launcher | Description |
-|---|---|---|---|
+|:---|:---|:---|:---|
 | **Interactive Binary Showcase** | [Demo.java](examples/Demo/src/main/java/fastbinary/demo/Demo.java) | `run-demo.bat` | VarInt compression comparison, ZigZag signed mapping, and bitstream packing. |
-| **JMH Microbenchmark Suite** | [FastBinaryBenchmark.java](examples/Benchmark/src/main/java/fastbinary/benchmark/FastBinaryBenchmark.java) | `run-benchmark.bat` | High-throughput throughput benchmarks for bit manipulation and VarInt encoding. |
+| **JMH Microbenchmark Suite** | [Benchmark.java](examples/Benchmark/src/main/java/fastbinary/benchmark/Benchmark.java) | `run-benchmark.bat` | High-throughput throughput benchmarks for bit manipulation and VarInt encoding. |
 
 ---
 
 ## Installation
 
-FastJava modules require **two** dependencies: the module itself, and `FastCore` (which handles native utilities and loading).
-
-### Option 1: Maven (Recommended)
-
-Add the JitPack repository and the dependency to your `pom.xml`:
+### Option 1: Maven (Recommended via JitPack)
 
 ```xml
 <repositories>
@@ -189,13 +200,7 @@ Add the JitPack repository and the dependency to your `pom.xml`:
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
         <artifactId>FastBinary</artifactId>
-        <version>0.1.0</version>
-    </dependency>
-    <!-- Required FastJava loader -->
-    <dependency>
-        <groupId>com.github.andrestubbe</groupId>
-        <artifactId>fastcore</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </dependency>
 </dependencies>
 ```
@@ -208,44 +213,42 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.andrestubbe:FastBinary:0.1.0'
-    // Required FastJava loader
-    implementation 'com.github.andrestubbe:fastcore:0.1.0'
+    implementation 'com.github.andrestubbe:FastBinary:0.1.1'
 }
 ```
 
 ### Option 3: Direct Download (No Build Tool)
 
-Download the latest JAR directly to add it to your classpath:
+Download the latest JARs directly to add them to your classpath:
 
-1. 📦 **[FastBinary-0.1.0.jar](https://github.com/andrestubbe/FastBinary/releases/download/0.1.0/FastBinary-0.1.0.jar)** (The Core Library)
-2. 📦 **[FastCore-0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/0.1.0/FastCore-0.1.0.jar)** (Required FastJava loader)
+1. 📦 **[FastBinary-0.1.1.jar](https://github.com/andrestubbe/FastBinary/releases/download/0.1.1/FastBinary-0.1.1.jar)** (The Core Library)
+2. ⚙️ **[fastcore-0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/0.1.0/fastcore-0.1.0.jar)** (FastJava runtime substrate)
 
 ---
 
 ## Documentation
 
-* **[COMPILE.md](docs/COMPILE.md)**: Full compilation guide (Maven Build Setup).
-* **[REFERENCE.md](docs/REFERENCE.md)**: Exhaustive catalog of API contracts, bit layouts, and algorithms.
-* **[PHILOSOPHY.md](docs/PHILOSOPHY.md)**: Zero-allocation and primitive bit manipulation design principles.
-* **[ROADMAP.md](docs/ROADMAP.md)**: Planned milestone features and performance extensions.
-* **[CHANGELOG.md](docs/CHANGELOG.md)**: Version history and release notes.
+- **[REFERENCE.md](docs/REFERENCE.md)**: Exhaustive catalog of API contracts, bit layouts, and algorithms.
+- **[PHILOSOPHY.md](docs/PHILOSOPHY.md)**: Zero-allocation and primitive bit manipulation design principles.
+- **[ROADMAP.md](docs/ROADMAP.md)**: Planned milestone features and performance extensions.
+- **[CHANGELOG.md](docs/CHANGELOG.md)**: Version history and release notes.
+- **[COMPILE.md](docs/COMPILE.md)**: Full compilation guide (Maven Build Setup).
 
 ---
 
 ## Platform Support
 
-| Platform | Status |
-|---|---|
-| Windows 10/11 | ✅ Fully Supported |
-| Linux | ✅ Fully Supported (Pure Java) |
-| macOS | ✅ Fully Supported (Pure Java) |
+| Platform | Architecture | Status | Notes |
+|:---|:---|:---|:---|
+| Windows 10/11 | x64, ARM64 | ✅ Fully Supported | Native high-performance pure Java |
+| Linux | x64, ARM64 | ✅ Fully Supported | Tested on Ubuntu / Debian / RHEL |
+| macOS | Apple Silicon, x64 | ✅ Fully Supported | Tested on macOS Sonoma / Sequoia |
 
 ---
 
 ## License
 
-MIT License — See [LICENSE](LICENSE) for details.
+MIT License — See [LICENSE](LICENSE) file for details.
 
 ---
 
